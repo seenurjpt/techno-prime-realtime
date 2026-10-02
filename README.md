@@ -32,23 +32,59 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 - Admin app: `admin@technoprime.dev` / `Admin@123` (change in `.env`)
 - Client app: `aarav@example.com`, `diya@example.com`, `kabir@example.com` / `User@123`
 
-## What it does
+## How it works
 
-**Admin app**
-- Create, edit and delete users (name, city, email, mobile, password)
-- Add amount to any user: the value is **added to** their existing balance
-- Live table: changes made by another admin, in another tab, appear instantly with a highlight
-- Search across name, city, email and mobile; running total of all balances
+Both apps read and write the same MongoDB database. The admin app changes users, MongoDB reports every change, and both apps push it to any open browser window straight away. Neither app needs a page refresh.
 
-**Client app**
-- Dashboard with balance, account details and recent credits
-- When an admin adds an amount, the balance counts up live and shows "+₹X added just now"
-- When an admin edits the user, details update live
-- When an admin deletes the user, they're signed out immediately
+### 1. Signing in
 
-**Access rules**
-- Admins can sign in only to the admin app; users only to the client app
-- Each app checks only its own collection at login (`Admin` vs `User`), signs tokens with a role-specific audience, and verifies role in middleware **and** in every API route
+1. An admin opens the admin app (port 3001) and signs in. The admin app checks the email and password against the `admins` collection **only**.
+2. A user opens the client app (port 3000) and signs in. The client app checks against the `users` collection **only**.
+3. On success, the app sets a session token (JWT, valid for 8 hours) in an HTTP-only cookie. Each app uses its own cookie name, and each token is stamped with its role (`admin` or `user`).
+4. Middleware checks the session on every page and API request, and every API route checks it again. A token from the other app is rejected, so:
+   - admin credentials on the client app → "Email or password is incorrect."
+   - user credentials on the admin app → "Email or password is incorrect."
+5. A visitor without a valid session is sent to the login page, and back to the page they asked for after signing in.
+
+### 2. Admin creates a user
+
+1. The admin clicks **Add user** and fills in name, city, email, mobile and a password. The user signs in to the client app with that email and password.
+2. The form is checked in the browser and again on the server: all fields required, a valid email, a 10–13 digit mobile, a password of at least 6 characters. Duplicate emails are rejected.
+3. The server saves the user with a hashed password and a starting amount of **₹0.00**.
+4. The new row appears at the top of the admin table, highlighted. Any other admin with the console open sees it appear too.
+5. The user can now sign in to the client app.
+
+### 3. Admin adds an amount
+
+1. The admin clicks **Add amount** on a user's row, enters an amount (or picks a quick amount) and an optional note.
+2. The server **adds** the amount to the user's current balance rather than replacing it: ₹500 plus ₹250 becomes ₹750.
+3. MongoDB does the addition in a single step (`$inc`), so two admins adding at the same moment both count. In the same database transaction, a record of the credit is saved to the `transactions` collection.
+4. In the admin app, the user's amount and the total across all users update.
+5. In the client app, if that user is signed in:
+   - the balance counts up to the new value
+   - a "+₹250.00 added just now" badge shows for a few seconds
+   - the credit, its note and the resulting balance appear at the top of **Recent credits**
+
+### 4. Admin edits a user
+
+1. The admin clicks **Edit** and changes any of name, city, email or mobile. They can also set a new password; left blank, the current one is kept.
+2. The amount isn't edited here. Balances only change through **Add amount**, so every balance change has a matching credit record.
+3. If the user is signed in, their **Account details** update live with the message "Your details were updated by an administrator".
+
+### 5. Admin deletes a user
+
+1. The admin clicks **Delete** and confirms.
+2. The user and their credit history are removed, and the row disappears from every open admin console.
+3. If the user is signed in, the client app immediately shows "Your account was removed", then signs them out to the login page. Their old session stops working and they can't sign in again.
+
+### 6. How changes reach the browser live
+
+1. Each app keeps one connection open from the browser to its `/api/stream` route (Server-Sent Events).
+2. On the server, a single MongoDB **change stream** watches the `users` collection and passes every insert, update and delete to all open connections.
+3. The admin stream carries changes to every user. The client stream carries only the signed-in user's own changes; the server does the filtering, so a user never receives anyone else's data.
+4. Password hashes are removed before anything is sent.
+5. The badge next to the page title shows the connection state: *Connecting*, *Live*, *Reconnecting* or *Live updates off*.
+6. If the connection drops, the browser reconnects automatically within about 3 seconds and reloads the latest data, so changes made while it was disconnected aren't missed.
 
 ## Architecture
 
