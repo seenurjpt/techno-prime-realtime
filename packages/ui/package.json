@@ -1,0 +1,25 @@
+{
+  "name": "@tp/ui",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./theme": "./src/theme.ts",
+    "./Providers": "./src/Providers.tsx",
+    "./toast": "./src/toast.tsx",
+    "./useLiveStream": "./src/useLiveStream.ts",
+    "./LoginForm": "./src/LoginForm.tsx",
+    "./LiveIndicator": "./src/LiveIndicator.tsx",
+    "./api": "./src/api.ts"
+  },
+  "peerDependencies": {
+    "@emotion/cache": "*",
+    "@emotion/react": "*",
+    "@emotion/styled": "*",
+    "@mui/icons-material": "*",
+    "@mui/material": "*",
+    "@mui/material-nextjs": "*",
+    "next": "*",
+    "react": "*"
+  }
+}

@@ -1,0 +1,58 @@
+/* Layer order lets Tailwind utilities override MUI (which renders into the `mui` layer). */
+@layer theme, base, mui, components, utilities;
+@import 'tailwindcss';
+@source '../../../../packages/ui/src';
+
+@theme {
+  --color-ink: #1f3a5f;
+  --color-ink-deep: #142844;
+  --color-credit: #17785a;
+  --color-canvas: #f5f6f8;
+  --color-line: #e1e5eb;
+}
+
+html,
+body {
+  background: var(--color-canvas);
+  color: #172033;
+}
+
+body {
+  font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, 'SF Pro Text', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* MUI text fields draw their own focused border; skip the global ring to avoid a double outline. */
+.MuiInputBase-input:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes credit-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

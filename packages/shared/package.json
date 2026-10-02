@@ -1,0 +1,25 @@
+{
+  "name": "@tp/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./db": "./src/db.ts",
+    "./models": "./src/models.ts",
+    "./jwt": "./src/jwt.ts",
+    "./password": "./src/password.ts",
+    "./validation": "./src/validation.ts",
+    "./serialize": "./src/serialize.ts",
+    "./realtime": "./src/realtime.ts",
+    "./sse": "./src/sse.ts",
+    "./types": "./src/types.ts",
+    "./format": "./src/format.ts",
+    "./http": "./src/http.ts"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "jose": "^6.0.10",
+    "mongoose": "^8.13.2",
+    "zod": "^3.24.2"
+  }
+}
