@@ -41,7 +41,7 @@ export default function DeleteUserDialog({ user, onClose, onDeleted }: Props) {
     <Dialog open onClose={pending ? undefined : onClose} fullWidth maxWidth="xs">
       <DialogTitle>Delete {user.name}?</DialogTitle>
       <DialogContent>
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-fg-soft">
           Their account, balance of <span className="tabular font-semibold">{formatAmount(user.amount)}</span> and
           amount history will be removed. If they&rsquo;re signed in to the client app, they&rsquo;ll be signed out
           right away.

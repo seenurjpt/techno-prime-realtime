@@ -1,7 +1,8 @@
 'use client';
-import AddCard from '@mui/icons-material/AddCard';
+import CurrencyRupee from '@mui/icons-material/CurrencyRupee';
 import DeleteOutline from '@mui/icons-material/DeleteOutline';
 import EditOutlined from '@mui/icons-material/EditOutlined';
+import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
@@ -21,19 +22,26 @@ type Props = {
 /** Memoised: a live update to one user re-renders one row, not the whole table. */
 export const UserRow = memo(function UserRow({ user, flash, onAmount, onEdit, onDelete }: Props) {
   return (
-    <TableRow hover className={`transition-colors duration-700 ${flash ? 'bg-emerald-50' : ''}`}>
-      <TableCell className="font-medium text-slate-900">{user.name}</TableCell>
+    <TableRow hover className={`transition-colors duration-700 ${flash ? 'bg-up/10' : ''}`}>
+      <TableCell className="font-medium text-fg">{user.name}</TableCell>
       <TableCell>{user.city}</TableCell>
       <TableCell className="max-w-56 truncate">{user.email}</TableCell>
       <TableCell className="tabular whitespace-nowrap">{user.mobile}</TableCell>
-      <TableCell align="right" className={`tabular whitespace-nowrap font-semibold ${flash ? 'text-credit' : ''}`}>
+      <TableCell align="right" className={`tabular whitespace-nowrap font-semibold ${flash ? 'text-up' : 'text-fg'}`}>
         {formatAmount(user.amount)}
       </TableCell>
       <TableCell align="right" className="whitespace-nowrap">
-        <Tooltip title="Add amount">
-          <IconButton size="small" color="success" onClick={() => onAmount(user)} aria-label={`Add amount for ${user.name}`}>
-            <AddCard fontSize="small" />
-          </IconButton>
+        <Tooltip title={`Add money to ${user.name}'s balance`}>
+          <Button
+            size="small"
+            variant="contained"
+            startIcon={<CurrencyRupee fontSize="small" />}
+            onClick={() => onAmount(user)}
+            aria-label={`Add amount for ${user.name}`}
+            className="!mr-2"
+          >
+            Add amount
+          </Button>
         </Tooltip>
         <Tooltip title="Edit">
           <IconButton size="small" onClick={() => onEdit(user)} aria-label={`Edit ${user.name}`}>

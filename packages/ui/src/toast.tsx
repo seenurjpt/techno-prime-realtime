@@ -29,7 +29,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         {current ? (
-          <Alert onClose={dismiss} severity={current.severity} variant="filled" className="min-w-72">
+          <Alert onClose={dismiss} severity={current.severity} variant="outlined" className="min-w-72 max-w-md">
             {current.message}
           </Alert>
         ) : undefined}

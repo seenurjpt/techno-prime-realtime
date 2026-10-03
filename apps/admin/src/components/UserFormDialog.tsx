@@ -117,7 +117,7 @@ export default function UserFormDialog({ user, onClose, onSaved }: Props) {
             required={!editing}
           />
           {editing && (
-            <p className="text-xs text-slate-500">To change the balance, use Add amount from the users table.</p>
+            <p className="text-xs text-muted">To change the balance, use Add amount from the users table.</p>
           )}
         </DialogContent>
         <DialogActions className="!px-6 !pb-4">

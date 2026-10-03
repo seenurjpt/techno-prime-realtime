@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { loginSchema } from '@tp/shared/validation';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { api, ApiError } from './api';
+import { ThemeToggle } from './ThemeToggle';
 import { useToast } from './toast';
 import { useFormValidation } from './useFormValidation';
 
@@ -69,9 +70,12 @@ export function LoginForm({ title, subtitle, badge, redirectTo, footer, notice, 
     <main className="flex min-h-dvh items-center justify-center px-4 py-10">
       <Paper variant="outlined" className="w-full max-w-sm p-8">
         <div className="mb-6">
-          {badge}
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
-          <p className="mt-1 text-sm text-slate-600">{subtitle}</p>
+          <div className="flex items-center justify-between">
+            {badge}
+            <ThemeToggle />
+          </div>
+          <h1 className="mt-5 text-2xl font-semibold text-fg">{title}</h1>
+          <p className="mt-1 text-sm text-fg-soft">{subtitle}</p>
         </div>
 
         {notice && !error && (
@@ -140,7 +144,7 @@ export function LoginForm({ title, subtitle, badge, redirectTo, footer, notice, 
             {pending ? 'Signing in' : 'Sign in'}
           </Button>
         </form>
-        {footer && <div className="mt-6 text-xs text-slate-500">{footer}</div>}
+        {footer && <div className="mt-6 text-xs text-muted">{footer}</div>}
       </Paper>
     </main>
   );

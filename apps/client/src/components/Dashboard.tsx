@@ -10,6 +10,7 @@ import { formatAmount, formatDateTime } from '@tp/shared/format';
 import type { PublicUser, UserEvent } from '@tp/shared/types';
 import { api } from '@tp/ui/api';
 import { LiveIndicator } from '@tp/ui/LiveIndicator';
+import { ThemeToggle } from '@tp/ui/ThemeToggle';
 import { useToast } from '@tp/ui/toast';
 import { useLiveStream } from '@tp/ui/useLiveStream';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -86,50 +87,63 @@ export function Dashboard({ initialUser, initialCredits }: Props) {
 
   return (
     <>
-      <header className="border-b border-line bg-white">
-        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4 sm:px-6">
-          <span className="font-semibold text-slate-900">Techno Prime</span>
-          <form action="/api/auth/logout" method="post">
-            <Button type="submit" size="small" color="inherit" startIcon={<Logout fontSize="small" />}>
-              Sign out
-            </Button>
-          </form>
+      <header className="border-b border-line bg-canvas">
+        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <span aria-hidden className="grid h-8 w-8 place-items-center rounded-md bg-brand text-sm font-bold text-on-brand">
+              T
+            </span>
+            <span className="text-base font-semibold text-fg">Techno Prime</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <form action="/api/auth/logout" method="post">
+              <Button type="submit" size="small" color="inherit" startIcon={<Logout fontSize="small" />}>
+                Sign out
+              </Button>
+            </form>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Hi, {firstName}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-fg">Hi, {firstName}</h1>
           <LiveIndicator status={status} />
         </div>
 
-        {/* The balance is the one loud element on the page. */}
-        <section aria-labelledby="balance-label" className="relative mt-6 overflow-hidden rounded-2xl bg-ink px-6 py-8 text-white sm:px-10 sm:py-10">
-          <p id="balance-label" className="text-sm text-white/70">
+        {/* The balance is the one loud element on the page: a dark card in both modes with the number in yellow. */}
+        <section
+          aria-labelledby="balance-label"
+          className="mt-6 rounded-xl border border-hero-line bg-hero px-6 py-8 text-[#eaecef] sm:px-10 sm:py-10"
+        >
+          <p id="balance-label" className="text-sm font-medium text-[#929aa5]">
             Available balance
           </p>
-          <p className="tabular mt-2 text-5xl font-semibold tracking-tight sm:text-6xl" aria-live="polite" aria-atomic="true">
+          <p
+            className="tabular mt-2 text-[2.5rem] font-bold leading-[1.1] tracking-[-0.3px] text-brand sm:text-6xl"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {formatAmount(shown)}
           </p>
           <div className="mt-4 h-7">
             {lastCredit ? (
               <span
                 key={lastCredit.key}
-                className="tabular inline-flex items-center rounded-full bg-credit px-3 py-1 text-sm font-semibold text-white motion-safe:animate-[credit-in_400ms_ease-out]"
+                className="tabular inline-flex items-center gap-1 rounded bg-[#0ecb81]/15 px-2.5 py-1 text-sm font-semibold text-[#0ecb81] motion-safe:animate-[credit-in_400ms_ease-out]"
               >
-                +{formatAmount(lastCredit.delta)} added just now
+                <span aria-hidden>▲</span> +{formatAmount(lastCredit.delta)} added just now
               </span>
             ) : (
-              <span className="text-sm text-white/60">Last updated {formatDateTime(user.updatedAt)}</span>
+              <span className="text-sm text-[#929aa5]">Last updated {formatDateTime(user.updatedAt)}</span>
             )}
           </div>
-          {/* Ledger rule lines: a quiet nod to an account book. */}
-          <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/3 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_27px,rgba(255,255,255,0.07)_27px,rgba(255,255,255,0.07)_28px)] sm:block" />
         </section>
 
         <div className="mt-6 grid gap-6 md:grid-cols-5">
           <Paper variant="outlined" className="p-6 md:col-span-2">
-            <h2 className="text-base font-semibold text-slate-900">Account details</h2>
+            <h2 className="text-base font-semibold text-fg">Account details</h2>
             <dl className="mt-4 space-y-3 text-sm">
               {[
                 ['Name', user.name],
@@ -139,17 +153,17 @@ export function Dashboard({ initialUser, initialCredits }: Props) {
                 ['Member since', new Date(user.createdAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })],
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between gap-4 border-b border-line pb-3 last:border-0 last:pb-0">
-                  <dt className="text-slate-500">{label}</dt>
-                  <dd className="truncate text-right font-medium text-slate-900">{value}</dd>
+                  <dt className="text-muted">{label}</dt>
+                  <dd className="truncate text-right font-medium text-fg">{value}</dd>
                 </div>
               ))}
             </dl>
           </Paper>
 
           <Paper variant="outlined" className="p-6 md:col-span-3">
-            <h2 className="text-base font-semibold text-slate-900">Recent credits</h2>
+            <h2 className="text-base font-semibold text-fg">Recent credits</h2>
             {credits.length === 0 ? (
-              <p className="mt-4 text-sm text-slate-600">
+              <p className="mt-4 text-sm text-fg-soft">
                 No credits yet. Amounts added by an administrator will appear here the moment they&rsquo;re added.
               </p>
             ) : (
@@ -157,12 +171,12 @@ export function Dashboard({ initialUser, initialCredits }: Props) {
                 {credits.map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-4 py-3 text-sm">
                     <div className="min-w-0">
-                      <p className="truncate text-slate-900">{c.note || 'Added by administrator'}</p>
-                      <p className="text-xs text-slate-500">{formatDateTime(c.createdAt)}</p>
+                      <p className="truncate text-fg">{c.note || 'Added by administrator'}</p>
+                      <p className="text-xs text-muted">{formatDateTime(c.createdAt)}</p>
                     </div>
                     <div className="tabular text-right">
-                      <p className="font-semibold text-credit">+{formatAmount(c.delta)}</p>
-                      <p className="text-xs text-slate-500">Balance {formatAmount(c.balanceAfter)}</p>
+                      <p className="font-semibold text-up">+{formatAmount(c.delta)}</p>
+                      <p className="text-xs text-muted">Balance {formatAmount(c.balanceAfter)}</p>
                     </div>
                   </li>
                 ))}
@@ -175,7 +189,7 @@ export function Dashboard({ initialUser, initialCredits }: Props) {
       <Dialog open={removed} aria-labelledby="removed-title">
         <DialogTitle id="removed-title">Your account was removed</DialogTitle>
         <DialogContent>
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-fg-soft">
             An administrator deleted this account, so you&rsquo;ve been signed out. Contact them if this is unexpected.
           </p>
         </DialogContent>

@@ -4,31 +4,67 @@
 @source '../../../../packages/ui/src';
 
 @theme {
-  --color-ink: #1f3a5f;
-  --color-ink-deep: #142844;
-  --color-credit: #17785a;
-  --color-canvas: #f5f6f8;
-  --color-line: #e1e5eb;
+  /* DESIGN-binance.md tokens. Light values here; .dark (set by MUI on <html>) flips them below. */
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-num: var(--font-plex), var(--font-inter), sans-serif;
+
+  --color-brand: #fcd535;
+  --color-brand-active: #f0b90b;
+  --color-on-brand: #181a20;
+  --color-info: #3b82f6;
+
+  --color-canvas: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-soft: #fafafa;
+  --color-line: #eaecef;
+  --color-line-strong: #cdd1d6;
+  --color-fg: #181a20;
+  --color-fg-soft: #474d57;
+  --color-muted: #707a8a;
+  --color-up: #03a66d;
+  --color-down: #cf304a;
+  /* The balance card stays dark in both modes: it's the one loud element on the dashboard. */
+  --color-hero: #181a20;
+  --color-hero-line: #181a20;
+}
+
+.dark {
+  color-scheme: dark;
+  --color-canvas: #0b0e11;
+  --color-surface: #1e2329;
+  --color-surface-soft: #2b3139;
+  --color-line: #2b3139;
+  --color-line-strong: #474d57;
+  --color-fg: #eaecef;
+  --color-fg-soft: #b7bdc6;
+  --color-muted: #929aa5;
+  --color-up: #0ecb81;
+  --color-down: #f6465d;
+  --color-hero: #1e2329;
+  --color-hero-line: #2b3139;
 }
 
 html,
 body {
   background: var(--color-canvas);
-  color: #172033;
+  color: var(--color-fg);
 }
 
 body {
-  font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, 'SF Pro Text', Roboto, 'Helvetica Neue',
-    Arial, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
+/* Every number (balances, amounts, mobiles) uses the numeric face with aligned digits. */
 .tabular {
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-ink);
+  outline: 2px solid color-mix(in srgb, var(--color-info) 50%, transparent);
   outline-offset: 2px;
 }
 

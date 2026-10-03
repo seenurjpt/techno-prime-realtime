@@ -11,6 +11,8 @@
     "./LoginForm": "./src/LoginForm.tsx",
     "./LiveIndicator": "./src/LiveIndicator.tsx",
     "./api": "./src/api.ts",
+    "./ThemeToggle": "./src/ThemeToggle.tsx",
+    "./colorScheme": "./src/colorScheme.ts",
     "./useFormValidation": "./src/useFormValidation.ts"
   },
   "dependencies": {

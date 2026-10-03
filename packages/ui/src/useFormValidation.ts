@@ -5,11 +5,14 @@ import type { ZodTypeAny } from 'zod';
 
 /**
  * Browser-side validation with the same zod schema the API uses.
- * A field is checked when it loses focus; after that it re-checks on every keystroke,
- * so an error disappears the moment it's fixed. `validateAll` runs on submit.
+ * A field is checked when it loses focus, but only once the person has typed in it: an
+ * autofocused field that loses focus as a dialog opens, or a field tabbed past, stays quiet
+ * until submit. After its first check it re-checks on every keystroke, so an error disappears
+ * the moment it's fixed. `validateAll` runs on submit and checks everything.
  */
 export function useFormValidation(schema: ZodTypeAny) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const edited = useRef(new Set<string>());
   const touched = useRef(new Set<string>());
 
   const check = useCallback(
@@ -28,6 +31,7 @@ export function useFormValidation(schema: ZodTypeAny) {
 
   const onBlur = useCallback(
     (values: unknown, key: string) => {
+      if (!edited.current.has(key)) return;
       touched.current.add(key);
       check(values, key);
     },
@@ -36,6 +40,7 @@ export function useFormValidation(schema: ZodTypeAny) {
 
   const onChange = useCallback(
     (values: unknown, key: string) => {
+      edited.current.add(key);
       if (touched.current.has(key)) check(values, key);
     },
     [check],

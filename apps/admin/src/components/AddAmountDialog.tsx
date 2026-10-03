@@ -60,13 +60,13 @@ export default function AddAmountDialog({ user, onClose, onSaved }: Props) {
       <form onSubmit={submit} noValidate>
         <DialogTitle>Add amount</DialogTitle>
         <DialogContent className="flex flex-col gap-4 !pt-1">
-          <div className="flex items-baseline justify-between rounded-lg bg-slate-50 px-4 py-3">
+          <div className="flex items-baseline justify-between rounded-lg bg-surface-soft px-4 py-3">
             <div>
-              <p className="font-medium text-slate-900">{user.name}</p>
-              <p className="text-xs text-slate-500">{user.email}</p>
+              <p className="font-medium text-fg">{user.name}</p>
+              <p className="text-xs text-muted">{user.email}</p>
             </div>
             <p className="tabular text-right">
-              <span className="block text-xs text-slate-500">Current balance</span>
+              <span className="block text-xs text-muted">Current balance</span>
               <span className="font-semibold">{formatAmount(user.amount)}</span>
             </p>
           </div>
@@ -105,9 +105,9 @@ export default function AddAmountDialog({ user, onClose, onSaved }: Props) {
             slotProps={{ htmlInput: { maxLength: 140 } }}
           />
 
-          <p className="tabular text-sm text-slate-600" aria-live="polite">
+          <p className="tabular text-sm text-fg-soft" aria-live="polite">
             New balance:{' '}
-            <span className={`font-semibold ${valid ? 'text-credit' : 'text-slate-900'}`}>
+            <span className={`font-semibold ${valid ? 'text-up' : 'text-fg'}`}>
               {formatAmount(user.amount + (valid ? parsed : 0))}
             </span>
           </p>
@@ -119,7 +119,6 @@ export default function AddAmountDialog({ user, onClose, onSaved }: Props) {
           <Button
             type="submit"
             variant="contained"
-            color="success"
             disabled={pending}
             startIcon={pending ? <CircularProgress size={14} color="inherit" /> : undefined}
           >

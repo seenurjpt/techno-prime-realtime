@@ -129,6 +129,7 @@ Admin action ──► API route ──► MongoDB
 - **Login timing.** Unknown emails are still checked against a dummy bcrypt hash, so response time doesn't reveal which emails exist.
 - **Performance.** Server-rendered first paint, memoised table rows (a live update re-renders one row), dialogs code-split with `next/dynamic`, deferred search filtering, MUI and icon imports tree-shaken.
 - **MUI + Tailwind together.** MUI renders into a `mui` CSS cascade layer ordered before Tailwind's `utilities`, so Tailwind classes override MUI styles predictably.
+- **Light and dark mode.** The look follows `DESIGN-binance.md`: one yellow accent for primary actions, near-black and white surfaces with hairline borders, Inter for text and IBM Plex Sans for numbers. The tokens live in two places that flip together: the MUI theme (`packages/ui/src/theme.ts`, light and dark colour schemes) and the Tailwind colours in each app's `globals.css` (overridden under `.dark`). Both apps start in light mode. The sun/moon button switches modes, and the choice is remembered in the browser and applied before first paint, so there's no flash.
 
 ## Scripts
 

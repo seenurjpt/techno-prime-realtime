@@ -25,7 +25,7 @@ export default async function ClientLoginPage({
       }
       flash={reason === 'signed-out' ? 'Signed out' : undefined}
       badge={
-        <span className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-2.5 py-1 text-xs font-semibold text-ink">
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-brand px-2.5 py-1 text-xs font-semibold text-on-brand">
           <AccountBalanceWallet sx={{ fontSize: 16 }} /> Techno Prime
         </span>
       }

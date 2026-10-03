@@ -119,12 +119,12 @@ export function UsersConsole({ initialUsers }: { initialUsers: PublicUser[] }) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Users</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-fg">Users</h1>
             <LiveIndicator status={status} />
           </div>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-fg-soft">
             {users.length} {users.length === 1 ? 'user' : 'users'}, holding{' '}
-            <span className="tabular font-semibold text-slate-900">{formatAmount(total)}</span> in total
+            <span className="tabular font-semibold text-fg">{formatAmount(total)}</span> in total
           </p>
         </div>
         <Button variant="contained" startIcon={<PersonAdd />} onClick={() => setDialog({ kind: 'create' })}>
@@ -179,13 +179,13 @@ export function UsersConsole({ initialUsers }: { initialUsers: PublicUser[] }) {
                   <TableCell colSpan={6} className="py-14 text-center">
                     {users.length === 0 ? (
                       <div className="flex flex-col items-center gap-3">
-                        <p className="text-slate-600">No users yet. Add one to give them access to the client app.</p>
+                        <p className="text-fg-soft">No users yet. Add one to give them access to the client app.</p>
                         <Button variant="outlined" startIcon={<PersonAdd />} onClick={() => setDialog({ kind: 'create' })}>
                           Add user
                         </Button>
                       </div>
                     ) : (
-                      <p className="text-slate-600">No users match &ldquo;{deferredQuery}&rdquo;.</p>
+                      <p className="text-fg-soft">No users match &ldquo;{deferredQuery}&rdquo;.</p>
                     )}
                   </TableCell>
                 </TableRow>

@@ -19,7 +19,7 @@ export default async function AdminLoginPage({
       notice={reason === 'expired' ? 'Your session expired. Sign in again to continue.' : undefined}
       flash={reason === 'signed-out' ? 'Signed out' : undefined}
       badge={
-        <span className="inline-flex items-center gap-1.5 rounded-md bg-ink px-2.5 py-1 text-xs font-semibold text-white">
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-brand px-2.5 py-1 text-xs font-semibold text-on-brand">
           <AdminPanelSettings sx={{ fontSize: 16 }} /> Techno Prime Admin
         </span>
       }
