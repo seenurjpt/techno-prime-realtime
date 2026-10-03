@@ -9,8 +9,11 @@ import InputAdornment from '@mui/material/InputAdornment';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { loginSchema } from '@tp/shared/validation';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { api, ApiError } from './api';
+import { useToast } from './toast';
+import { useFormValidation } from './useFormValidation';
 
 type Props = {
   title: string;
@@ -18,32 +21,46 @@ type Props = {
   badge: ReactNode;
   redirectTo: string;
   footer?: ReactNode;
+  /** Shown as an alert above the form (account removed, session expired). */
   notice?: string;
+  /** Shown once as a toast, e.g. after signing out. */
+  flash?: string;
 };
 
-export function LoginForm({ title, subtitle, badge, redirectTo, footer, notice }: Props) {
+export function LoginForm({ title, subtitle, badge, redirectTo, footer, notice, flash }: Props) {
   const router = useRouter();
+  const notify = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fields, setFields] = useState<Record<string, string>>({});
+  const { errors: fields, setErrors: setFields, onBlur, onChange, validateAll } = useFormValidation(loginSchema);
+
+  // Toast the flash message once, then drop ?reason from the URL so a refresh doesn't repeat it.
+  const flashed = useRef(false);
+  useEffect(() => {
+    if (!flash || flashed.current) return;
+    flashed.current = true;
+    notify(flash, 'info');
+    const url = new URL(window.location.href);
+    url.searchParams.delete('reason');
+    window.history.replaceState(null, '', url);
+  }, [flash, notify]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    setPending(true);
     setError(null);
-    setFields({});
+    if (!validateAll({ email, password })) return;
+    setPending(true);
     try {
       await api('/api/auth/login', { method: 'POST', json: { email, password } });
+      notify('Signed in');
       router.replace(redirectTo);
       router.refresh();
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-        setFields(err.fields);
-      } else setError('Could not reach the server. Check your connection and try again.');
+      if (err instanceof ApiError && Object.keys(err.fields).length) setFields(err.fields);
+      else setError(err instanceof Error ? err.message : 'Something went wrong. Try again.');
       setPending(false);
     }
   }
@@ -75,7 +92,11 @@ export function LoginForm({ title, subtitle, badge, redirectTo, footer, notice }
             autoComplete="email"
             autoFocus
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              onChange({ email: e.target.value, password }, 'email');
+            }}
+            onBlur={() => onBlur({ email, password }, 'email')}
             error={Boolean(fields.email)}
             helperText={fields.email}
             required
@@ -85,7 +106,10 @@ export function LoginForm({ title, subtitle, badge, redirectTo, footer, notice }
             type={show ? 'text' : 'password'}
             autoComplete="current-password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              onChange({ email, password: e.target.value }, 'password');
+            }}
             error={Boolean(fields.password)}
             helperText={fields.password}
             required

@@ -7,18 +7,20 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import type { PublicUser } from '@tp/shared/types';
+import { createUserSchema, updateUserSchema } from '@tp/shared/validation';
 import { api, ApiError } from '@tp/ui/api';
 import { useToast } from '@tp/ui/toast';
+import { useFormValidation } from '@tp/ui/useFormValidation';
 import { useState, type FormEvent } from 'react';
 
 type Props = { user: PublicUser | null; onClose: () => void; onSaved: (u: PublicUser) => void };
 type Field = 'name' | 'city' | 'email' | 'mobile' | 'password';
 
-const fields: { key: Field; label: string; type?: string; autoComplete?: string; inputMode?: 'tel' }[] = [
-  { key: 'name', label: 'Name', autoComplete: 'off' },
-  { key: 'city', label: 'City', autoComplete: 'off' },
-  { key: 'email', label: 'Email', type: 'email', autoComplete: 'off' },
-  { key: 'mobile', label: 'Mobile', type: 'tel', inputMode: 'tel', autoComplete: 'off' },
+const fields: { key: Exclude<Field, 'password'>; label: string; type?: string; inputMode?: 'tel' | 'email'; hint?: string }[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'city', label: 'City' },
+  { key: 'email', label: 'Email', type: 'email', inputMode: 'email', hint: 'The user signs in to the client app with this' },
+  { key: 'mobile', label: 'Mobile', type: 'tel', inputMode: 'tel', hint: '10–13 digits, e.g. 9876543210 or +919876543210' },
 ];
 
 export default function UserFormDialog({ user, onClose, onSaved }: Props) {
@@ -31,31 +33,51 @@ export default function UserFormDialog({ user, onClose, onSaved }: Props) {
     mobile: user?.mobile ?? '',
     password: '',
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
+  const { errors, setErrors, onBlur, onChange, validateAll } = useFormValidation(
+    editing ? updateUserSchema : createUserSchema,
+  );
   const [pending, setPending] = useState(false);
 
   const set = (key: Field) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValues((v) => ({ ...v, [key]: e.target.value }));
-    if (errors[key]) setErrors(({ [key]: _, ...rest }) => rest);
+    const next = { ...values, [key]: e.target.value };
+    setValues(next);
+    onChange(next, key);
   };
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (!validateAll(values)) return;
+
+    // Compare the cleaned-up values with what's saved, so "  Aarav  " vs "Aarav" counts as unchanged.
+    if (editing) {
+      const parsed = updateUserSchema.parse(values);
+      const unchanged =
+        !parsed.password && (['name', 'city', 'email', 'mobile'] as const).every((k) => parsed[k] === user![k]);
+      if (unchanged) {
+        notify('No changes to save', 'info');
+        onClose();
+        return;
+      }
+    }
+
     setPending(true);
-    setFormError(null);
     try {
       const { user: saved } = await api<{ user: PublicUser }>(editing ? `/api/users/${user!.id}` : '/api/users', {
         method: editing ? 'PATCH' : 'POST',
         json: values,
       });
       onSaved(saved);
-      notify(editing ? `Saved changes to ${saved.name}` : `Added ${saved.name}`);
+      notify(editing ? `Saved changes to ${saved.name}` : `Added ${saved.name}. They can now sign in to the client app.`);
       onClose();
     } catch (err) {
-      if (err instanceof ApiError && Object.keys(err.fields).length) setErrors(err.fields);
-      else setFormError(err instanceof Error ? err.message : 'Could not save. Try again.');
       setPending(false);
+      if (err instanceof ApiError && Object.keys(err.fields).length) {
+        setErrors(err.fields);
+        return;
+      }
+      notify(err instanceof Error ? err.message : 'Could not save. Try again.', 'error');
+      // The user was deleted while this dialog was open; there's nothing left to edit.
+      if (err instanceof ApiError && err.status === 404) onClose();
     }
   }
 
@@ -64,18 +86,18 @@ export default function UserFormDialog({ user, onClose, onSaved }: Props) {
       <form onSubmit={submit} noValidate>
         <DialogTitle>{editing ? `Edit ${user!.name}` : 'Add user'}</DialogTitle>
         <DialogContent className="flex flex-col gap-4 !pt-2">
-          {formError && <p className="text-sm text-red-700">{formError}</p>}
           {fields.map((f, i) => (
             <TextField
               key={f.key}
               label={f.label}
               type={f.type}
               autoFocus={i === 0}
-              autoComplete={f.autoComplete}
+              autoComplete="off"
               value={values[f.key]}
               onChange={set(f.key)}
+              onBlur={() => onBlur(values, f.key)}
               error={Boolean(errors[f.key])}
-              helperText={errors[f.key]}
+              helperText={errors[f.key] ?? f.hint}
               required
               slotProps={{ htmlInput: { inputMode: f.inputMode } }}
             />
@@ -86,8 +108,12 @@ export default function UserFormDialog({ user, onClose, onSaved }: Props) {
             autoComplete="new-password"
             value={values.password}
             onChange={set('password')}
+            onBlur={() => onBlur(values, 'password')}
             error={Boolean(errors.password)}
-            helperText={errors.password ?? (editing ? 'Leave blank to keep the current password' : 'The user signs in to the client app with this')}
+            helperText={
+              errors.password ??
+              (editing ? 'Leave blank to keep the current password' : 'At least 6 characters. The user signs in with this')
+            }
             required={!editing}
           />
           {editing && (

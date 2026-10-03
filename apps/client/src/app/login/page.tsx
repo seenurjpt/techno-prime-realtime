@@ -16,7 +16,14 @@ export default async function ClientLoginPage({
       title="Welcome back"
       subtitle="Sign in to see your balance and account details."
       redirectTo={redirectTo}
-      notice={reason === 'removed' ? 'Your account was removed by an administrator.' : undefined}
+      notice={
+        reason === 'removed'
+          ? 'Your account was removed by an administrator.'
+          : reason === 'expired'
+            ? 'Your session expired. Sign in again to continue.'
+            : undefined
+      }
+      flash={reason === 'signed-out' ? 'Signed out' : undefined}
       badge={
         <span className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-2.5 py-1 text-xs font-semibold text-ink">
           <AccountBalanceWallet sx={{ fontSize: 16 }} /> Techno Prime

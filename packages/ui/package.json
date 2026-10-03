@@ -10,7 +10,11 @@
     "./useLiveStream": "./src/useLiveStream.ts",
     "./LoginForm": "./src/LoginForm.tsx",
     "./LiveIndicator": "./src/LiveIndicator.tsx",
-    "./api": "./src/api.ts"
+    "./api": "./src/api.ts",
+    "./useFormValidation": "./src/useFormValidation.ts"
+  },
+  "dependencies": {
+    "@tp/shared": "*"
   },
   "peerDependencies": {
     "@emotion/cache": "*",

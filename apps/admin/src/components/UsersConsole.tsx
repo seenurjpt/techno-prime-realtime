@@ -14,6 +14,7 @@ import { formatAmount } from '@tp/shared/format';
 import type { PublicUser, UserEvent } from '@tp/shared/types';
 import { api } from '@tp/ui/api';
 import { LiveIndicator } from '@tp/ui/LiveIndicator';
+import { useToast } from '@tp/ui/toast';
 import { useLiveStream } from '@tp/ui/useLiveStream';
 import dynamic from 'next/dynamic';
 import { useCallback, useDeferredValue, useEffect, useMemo, useReducer, useRef, useState } from 'react';
@@ -36,7 +37,10 @@ const FLASH_MS = 1600;
 
 export function UsersConsole({ initialUsers }: { initialUsers: PublicUser[] }) {
   const [users, dispatch] = useReducer(usersReducer, initialUsers);
+  const notify = useToast();
   const [dialog, setDialog] = useState<DialogState>(null);
+  const dialogRef = useRef(dialog);
+  dialogRef.current = dialog;
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
   const [flashing, setFlashing] = useState<Set<string>>(() => new Set());
@@ -65,6 +69,13 @@ export function UsersConsole({ initialUsers }: { initialUsers: PublicUser[] }) {
 
   const status = useLiveStream<UserEvent>('/api/stream', {
     onEvent: (event) => {
+      // Another admin deleted the user this admin is editing or topping up: close the dialog and say why.
+      // (A delete dialog is skipped: its own request may finish after the stream reports the delete.)
+      const open = dialogRef.current;
+      if (event.type === 'delete' && open && open.kind !== 'create' && open.kind !== 'delete' && open.user.id === event.id) {
+        notify(`${open.user.name} was deleted by another admin`, 'warning');
+        setDialog(null);
+      }
       dispatch(event);
       if (event.type === 'upsert') flash(event.user.id);
     },

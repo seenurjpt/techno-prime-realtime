@@ -16,11 +16,13 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith('/api/')) {
     return NextResponse.json({ error: 'Sign in to continue.' }, { status: 401 });
   }
+  // A present-but-invalid cookie (expired, or another app's token) gets cleared, and the login page says why.
+  const stale = req.cookies.has(COOKIE_NAMES[ROLE]);
   const url = new URL('/login', req.url);
   if (pathname !== '/') url.searchParams.set('next', pathname + search);
+  if (stale) url.searchParams.set('reason', 'expired');
   const res = NextResponse.redirect(url);
-  // A present-but-invalid cookie (expired, or another app's token) gets cleared.
-  if (req.cookies.has(COOKIE_NAMES[ROLE])) res.cookies.delete(COOKIE_NAMES[ROLE]);
+  if (stale) res.cookies.delete(COOKIE_NAMES[ROLE]);
   return res;
 }
 

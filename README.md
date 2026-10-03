@@ -49,14 +49,18 @@ Both apps read and write the same MongoDB database. The admin app changes users,
 ### 2. Admin creates a user
 
 1. The admin clicks **Add user** and fills in name, city, email, mobile and a password. The user signs in to the client app with that email and password.
-2. The form is checked in the browser and again on the server: all fields required, a valid email, a 10–13 digit mobile, a password of at least 6 characters. Duplicate emails are rejected.
+2. Each field is checked as soon as the admin leaves it, and again on the server with the same rules (`packages/shared/src/validation.ts`):
+   - **Name / City:** 2+ characters; letters (any language), spaces and `. ' -` only.
+   - **Email:** trimmed and lowercased. It must have exactly one `@` and no spaces. The part before the `@` uses only letters, numbers and `. _ % + -`, with no leading, trailing or double dots. The domain needs valid labels and a real ending (`.com`, `.in` …). Common typos like `gmail.con` or `gmial.com` get a "Did you mean …?" message. The same email can't be used twice, whatever the capitalisation.
+   - **Mobile:** 10–13 digits with an optional leading `+`. Spaces, dashes and brackets are accepted and stripped. Numbers made of one repeated digit are rejected.
+   - **Password:** 6–72 characters, not only spaces, no leading or trailing space.
 3. The server saves the user with a hashed password and a starting amount of **₹0.00**.
 4. The new row appears at the top of the admin table, highlighted. Any other admin with the console open sees it appear too.
 5. The user can now sign in to the client app.
 
 ### 3. Admin adds an amount
 
-1. The admin clicks **Add amount** on a user's row, enters an amount (or picks a quick amount) and an optional note.
+1. The admin clicks **Add amount** on a user's row, enters an amount (or picks a quick amount) and an optional note. The amount must be a plain number greater than 0, with at most 2 decimal places, up to ₹1,00,00,000. The note can be up to 140 characters.
 2. The server **adds** the amount to the user's current balance rather than replacing it: ₹500 plus ₹250 becomes ₹750.
 3. MongoDB does the addition in a single step (`$inc`), so two admins adding at the same moment both count. In the same database transaction, a record of the credit is saved to the `transactions` collection.
 4. In the admin app, the user's amount and the total across all users update.

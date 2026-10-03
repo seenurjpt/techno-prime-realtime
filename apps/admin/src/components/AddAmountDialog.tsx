@@ -10,8 +10,10 @@ import InputAdornment from '@mui/material/InputAdornment';
 import TextField from '@mui/material/TextField';
 import { formatAmount } from '@tp/shared/format';
 import type { PublicUser } from '@tp/shared/types';
+import { addAmountSchema } from '@tp/shared/validation';
 import { api, ApiError } from '@tp/ui/api';
 import { useToast } from '@tp/ui/toast';
+import { useFormValidation } from '@tp/ui/useFormValidation';
 import { useState, type FormEvent } from 'react';
 
 type Props = { user: PublicUser; onClose: () => void; onSaved: (u: PublicUser) => void };
@@ -21,16 +23,18 @@ export default function AddAmountDialog({ user, onClose, onSaved }: Props) {
   const notify = useToast();
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { errors, setErrors, onBlur, onChange, validateAll } = useFormValidation(addAmountSchema);
   const [pending, setPending] = useState(false);
 
-  const parsed = Number(amount);
-  const valid = amount !== '' && Number.isFinite(parsed) && parsed > 0;
+  // Drives the live 'New balance' preview and the button label.
+  const check = addAmountSchema.safeParse({ amount, note });
+  const valid = check.success;
+  const parsed = check.success ? check.data.amount : 0;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (!validateAll({ amount, note })) return;
     setPending(true);
-    setErrors({});
     try {
       const { user: saved } = await api<{ user: PublicUser }>(`/api/users/${user.id}/amount`, {
         method: 'POST',
@@ -40,12 +44,14 @@ export default function AddAmountDialog({ user, onClose, onSaved }: Props) {
       notify(`Added ${formatAmount(parsed)} to ${saved.name}. New balance ${formatAmount(saved.amount)}`);
       onClose();
     } catch (err) {
-      setErrors(
-        err instanceof ApiError && Object.keys(err.fields).length
-          ? err.fields
-          : { amount: err instanceof Error ? err.message : 'Could not add amount. Try again.' },
-      );
       setPending(false);
+      if (err instanceof ApiError && Object.keys(err.fields).length) {
+        setErrors(err.fields);
+        return;
+      }
+      notify(err instanceof Error ? err.message : 'Could not add the amount. Try again.', 'error');
+      // The user was deleted while this dialog was open.
+      if (err instanceof ApiError && err.status === 404) onClose();
     }
   }
 
@@ -67,23 +73,37 @@ export default function AddAmountDialog({ user, onClose, onSaved }: Props) {
 
           <TextField
             label="Amount to add"
-            type="number"
             autoFocus
+            autoComplete="off"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              setAmount(e.target.value);
+              onChange({ amount: e.target.value, note }, 'amount');
+            }}
+            onBlur={() => onBlur({ amount, note }, 'amount')}
             error={Boolean(errors.amount)}
             helperText={errors.amount ?? 'Added on top of the current balance'}
             slotProps={{
               input: { startAdornment: <InputAdornment position="start">₹</InputAdornment> },
-              htmlInput: { min: 0.01, step: 0.01, inputMode: 'decimal', className: 'tabular' },
+              htmlInput: { inputMode: 'decimal', className: 'tabular' },
             }}
           />
           <div className="flex flex-wrap gap-2" role="group" aria-label="Quick amounts">
             {PRESETS.map((p) => (
-              <Chip key={p} label={`+${formatAmount(p).replace('.00', '')}`} onClick={() => setAmount(String(p))} variant="outlined" />
+              <Chip key={p} label={`+${formatAmount(p).replace('.00', '')}`} onClick={() => {
+                  setAmount(String(p));
+                  onChange({ amount: String(p), note }, 'amount');
+                }} variant="outlined" />
             ))}
           </div>
-          <TextField label="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} slotProps={{ htmlInput: { maxLength: 140 } }} />
+          <TextField
+            label="Note (optional)"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            error={Boolean(errors.note)}
+            helperText={errors.note ?? 'Shown to the user with this credit, e.g. Refund for order 1042'}
+            slotProps={{ htmlInput: { maxLength: 140 } }}
+          />
 
           <p className="tabular text-sm text-slate-600" aria-live="polite">
             New balance:{' '}
@@ -100,7 +120,7 @@ export default function AddAmountDialog({ user, onClose, onSaved }: Props) {
             type="submit"
             variant="contained"
             color="success"
-            disabled={pending || !valid}
+            disabled={pending}
             startIcon={pending ? <CircularProgress size={14} color="inherit" /> : undefined}
           >
             Add {valid ? formatAmount(parsed) : 'amount'}

@@ -41,7 +41,10 @@ export function Dashboard({ initialUser, initialCredits }: Props) {
       const delta = Math.round((next.amount - prev.amount) * 100) / 100;
       setUser(next);
       if (delta !== 0) {
-        if (delta > 0) setLastCredit({ delta, key: Date.now() });
+        if (delta > 0) {
+          setLastCredit({ delta, key: Date.now() });
+          notify(`${formatAmount(delta)} was added to your balance`);
+        }
         refreshCredits();
       } else if (next.name !== prev.name || next.city !== prev.city || next.email !== prev.email || next.mobile !== prev.mobile) {
         notify('Your details were updated by an administrator', 'info');

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { useToast } from './toast';
 
 export type LiveStatus = 'connecting' | 'live' | 'reconnecting' | 'unavailable';
 
@@ -14,6 +15,7 @@ type Handlers<T> = {
  * status and keeps handler refs fresh so the connection isn't torn down on every render.
  */
 export function useLiveStream<T>(url: string, handlers: Handlers<T>): LiveStatus {
+  const notify = useToast();
   const [status, setStatus] = useState<LiveStatus>('connecting');
   const ref = useRef(handlers);
   ref.current = handlers;
@@ -36,6 +38,7 @@ export function useLiveStream<T>(url: string, handlers: Handlers<T>): LiveStatus
     });
     source.addEventListener('fatal', () => {
       setStatus('unavailable');
+      notify('Live updates are off. Refresh the page to see the latest changes.', 'error');
       source.close();
     });
     source.onerror = () => {
@@ -44,7 +47,7 @@ export function useLiveStream<T>(url: string, handlers: Handlers<T>): LiveStatus
     };
 
     return () => source.close();
-  }, [url]);
+  }, [url, notify]);
 
   return status;
 }
